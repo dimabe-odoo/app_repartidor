@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "549297619058",
+    "project_id": "repartidor-e14c7",
+    "storage_bucket": "repartidor-e14c7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549297619058:android:2177ab80bcbe34098342eb",
+        "android_client_info": {
+          "package_name": "com.example.app_repatidor_v2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "549297619058-uh28gos8au6bbgo81hfumf3m7tn91svj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRq7IyteDmAJzfFR1LnEe7Rj7BV4VZUZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "549297619058-uh28gos8au6bbgo81hfumf3m7tn91svj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
