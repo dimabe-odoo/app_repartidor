@@ -1,43 +1,37 @@
-import 'dart:convert';
-
-import 'package:app_repatidor_v2/src/models/client_model.dart';
-import 'package:app_repatidor_v2/src/models/product_model.dart';
-import 'package:app_repatidor_v2/src/pages/new_client_dart.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/auth_service.dart';
-import 'package:app_repatidor_v2/src/services/client_service.dart';
-import 'package:app_repatidor_v2/src/services/order_service.dart';
-import 'package:app_repatidor_v2/src/utils/utils.dart';
+import 'package:app_repartidor_v3/src/models/client_model.dart';
+import 'package:app_repartidor_v3/src/models/product_model.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
+import 'package:app_repartidor_v3/src/services/auth_service.dart';
+import 'package:app_repartidor_v3/src/services/client_service.dart';
+import 'package:app_repartidor_v3/src/services/order_service.dart';
+import 'package:app_repartidor_v3/src/utils/utils.dart';
 import 'package:async_builder/async_builder.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cool_stepper/cool_stepper.dart';
-import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_number_picker/flutter_number_picker.dart';
-import 'dart:io';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getwidget/colors/gf_color.dart';
 import 'package:getwidget/components/avatar/gf_avatar.dart';
 import 'package:getwidget/components/button/gf_button.dart';
 import 'package:getwidget/components/button/gf_button_bar.dart';
 import 'package:getwidget/components/card/gf_card.dart';
+import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/components/loader/gf_loader.dart';
-import 'package:flutter_styled_toast/flutter_styled_toast.dart';
-import 'package:getwidget/getwidget.dart';
+import 'package:getwidget/position/gf_position.dart';
 import 'package:getwidget/shape/gf_avatar_shape.dart';
+import 'package:getwidget/types/gf_button_type.dart';
 import 'package:location/location.dart';
 import 'package:smart_select/smart_select.dart';
 import 'package:toast/toast.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'history_page.dart';
 import 'home_page.dart';
+import 'new_client_page.dart';
 
 class NewOrderPage extends StatefulWidget {
-  final int client;
+  int client;
 
   NewOrderPage({Key key, this.client}) : super(key: key);
 
@@ -63,8 +57,6 @@ class _NewOrderPageState extends State<NewOrderPage> {
   Location location;
   List<Step> steps;
   int currentPage = 1;
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
@@ -76,6 +68,9 @@ class _NewOrderPageState extends State<NewOrderPage> {
       clientService.getPrice(widget.client).then((value) {
         products = value;
       });
+      clientService.getClientId(widget.client).then((value) {
+        clientmodel = value;
+      });
     }
     if (clientId != 0) {
       clientService.getClientId(clientId).then((value) {
@@ -83,9 +78,6 @@ class _NewOrderPageState extends State<NewOrderPage> {
       });
     }
     listclient = clientService.getClient(_prefs.truck);
-    location.onLocationChanged.listen((LocationData cLoc) {
-      currentLocation = cLoc;
-    });
     setInitialLocation();
   }
 
@@ -114,7 +106,7 @@ class _NewOrderPageState extends State<NewOrderPage> {
                   return AlertDialog(
                     title: Text('¿Esta seguro que desea esta inactivo?'),
                     content:
-                        Text('Esto significa que no recibira nuevos pedidos'),
+                    Text('Esto significa que no recibira nuevos pedidos'),
                     actions: [
                       FlatButton(
                           onPressed: () {
@@ -146,19 +138,19 @@ class _NewOrderPageState extends State<NewOrderPage> {
               MaterialPageRoute(
                 builder: (context) => NewOrderPage(),
               ),
-              (route) => false);
+                  (route) => false);
         } else if (value == 0) {
           Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => HomePage(),
               ),
-              (route) => false);
+                  (route) => false);
         } else if (value == 2) {
           Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => HistoryPage(),
               ),
-              (route) => false);
+                  (route) => false);
         }
       },
       fixedColor: Color(0xff1f418b),
@@ -176,7 +168,7 @@ class _NewOrderPageState extends State<NewOrderPage> {
         BottomNavigationBarItem(
             icon: _prefs.active == true
                 ? Icon(FontAwesomeIcons.solidCheckSquare,
-                    color: Color(0xff1f418b))
+                color: Color(0xff1f418b))
                 : Icon(FontAwesomeIcons.checkSquare, color: Color(0xff1f418b)),
             label: "Activo")
       ],
@@ -195,7 +187,7 @@ class _NewOrderPageState extends State<NewOrderPage> {
                 MaterialPageRoute(
                   builder: (context) => NewClientPage(),
                 ),
-                (route) => false);
+                    (route) => false);
           });
         },
       ),
@@ -253,33 +245,41 @@ class _NewOrderPageState extends State<NewOrderPage> {
           children: <GFButton>[
             currentStep == listStep(context).length - 1
                 ? GFButton(
-                    onPressed: () {
-                      setState(() {
-                        print(paymentId);
-                        orders.createOrder(
-                            clientId, products, paymentId.toString());
-                        Toast.show("Venta Realizada Correctamente", context,
-                            duration: Toast.LENGTH_SHORT,
-                            backgroundColor: GFColors.SUCCESS,
-                            gravity: Toast.BOTTOM);
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    super.widget),
-                            (route) => false);
-                      });
-                    },
-                    color: GFColors.SUCCESS,
-                    text: "Finalizar",
-                    type: GFButtonType.transparent,
-                  )
+              onPressed: () {
+                setState(() {
+                  print(clientId);
+                  if(clientId != 0){
+                    orders.createOrder(
+                        clientId, products, paymentId.toString());
+                  }else{
+                    orders.createOrder(
+                        widget.client, products, paymentId.toString());
+                  }
+                  Toast.show("Venta Realizada Correctamente", context,
+                      duration: Toast.LENGTH_SHORT,
+                      backgroundColor: GFColors.SUCCESS,
+                      gravity: Toast.BOTTOM);
+                  widget.client = 0;
+                  clientId = 0;
+                  clientmodel = null;
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) =>
+                          super.widget),
+                          (route) => false);
+                });
+              },
+              color: GFColors.SUCCESS,
+              text: "Finalizar",
+              type: GFButtonType.transparent,
+            )
                 : GFButton(
-                    onPressed: () => stepContinue(context),
-                    text: "Continuar",
-                    type: GFButtonType.transparent,
-                    color: GFColors.PRIMARY,
-                  ),
+              onPressed: () => stepContinue(context),
+              text: "Continuar",
+              type: GFButtonType.transparent,
+              color: GFColors.PRIMARY,
+            ),
             GFButton(
               onPressed: () => stepCancel(context),
               text: "Cancelar",
@@ -305,14 +305,23 @@ class _NewOrderPageState extends State<NewOrderPage> {
   }
 
   void stepContinue(BuildContext context) {
+    bool verify = verifyproduct(products);
     if (listStep(context).length < 5 &&
-        clientId != 0 &&
-        !products.any((element) => element.qty == 0 && element.stock > 0)) {
+        verify) {
       setState(() {
         currentStep = currentStep + 1;
       });
     } else {
       showAlert(context, "Error", "No puedo crear un pedido con cantidad en 0");
+    }
+  }
+
+  bool verifyproduct(List<ProductModel> products){
+    for (var product in products){
+      if (product.qty != 0.0 && product.stock != 0) {
+        return true;
+        break;
+      }
     }
   }
 
@@ -324,8 +333,8 @@ class _NewOrderPageState extends State<NewOrderPage> {
           state: currentStep == 1
               ? StepState.complete
               : currentStep == 0
-                  ? StepState.editing
-                  : StepState.disabled,
+              ? StepState.editing
+              : StepState.disabled,
           content: formNew(context, listclient)),
       Step(
           title: AutoSizeText(
@@ -335,8 +344,8 @@ class _NewOrderPageState extends State<NewOrderPage> {
           state: currentStep == 2
               ? StepState.complete
               : currentStep == 1
-                  ? StepState.editing
-                  : StepState.disabled,
+              ? StepState.editing
+              : StepState.disabled,
           content: discount(products)),
       Step(
           title: AutoSizeText("Pago"),
@@ -344,8 +353,8 @@ class _NewOrderPageState extends State<NewOrderPage> {
           state: currentStep == 3
               ? StepState.complete
               : currentStep == 2
-                  ? StepState.editing
-                  : StepState.disabled,
+              ? StepState.editing
+              : StepState.disabled,
           content: showpayments()),
     ];
   }
@@ -545,11 +554,11 @@ class _NewOrderPageState extends State<NewOrderPage> {
               children: [
                 _products_list(products
                     .where((element) =>
-                        element.isCat != true && element.isDis != true)
+                element.isCat != true && element.isDis != true)
                     .toList()),
                 _products_list(products
                     .where((element) =>
-                        element.isCat == true && element.isDis != true)
+                element.isCat == true && element.isDis != true)
                     .toList()),
               ],
             ),
@@ -561,18 +570,18 @@ class _NewOrderPageState extends State<NewOrderPage> {
       BuildContext context, ClientModel model, String itemDesignation) {
     return model != null
         ? Container(
-            child: ListTile(
-              contentPadding: EdgeInsets.all(0),
-              title: AutoSizeText(model.name),
-              subtitle: AutoSizeText(model.address),
-            ),
-          )
+      child: ListTile(
+        contentPadding: EdgeInsets.all(0),
+        title: AutoSizeText(model.name),
+        subtitle: AutoSizeText(model.address),
+      ),
+    )
         : Container(
-            child: ListTile(
-              contentPadding: EdgeInsets.all(0),
-              title: AutoSizeText("Seleccione un cliente"),
-            ),
-          );
+      child: ListTile(
+        contentPadding: EdgeInsets.all(0),
+        title: AutoSizeText("Seleccione un cliente"),
+      ),
+    );
   }
 
   Widget _customPopupItemBuilderExample2(
@@ -582,10 +591,10 @@ class _NewOrderPageState extends State<NewOrderPage> {
       decoration: !isSelected
           ? null
           : BoxDecoration(
-              border: Border.all(color: Theme.of(context).primaryColor),
-              borderRadius: BorderRadius.circular(5),
-              color: Colors.white,
-            ),
+        border: Border.all(color: Theme.of(context).primaryColor),
+        borderRadius: BorderRadius.circular(5),
+        color: Colors.white,
+      ),
       child: ListTile(
         selected: isSelected,
         title: AutoSizeText(
@@ -602,6 +611,7 @@ class _NewOrderPageState extends State<NewOrderPage> {
       height: MediaQuery.of(context).size.height,
       child: ListView.builder(
         itemCount: list.length,
+        scrollDirection: Axis.vertical,
         itemBuilder: (context, index) {
           var qty = 0;
           var stock = list[index].stock;
@@ -617,58 +627,58 @@ class _NewOrderPageState extends State<NewOrderPage> {
                   : AutoSizeText(subtotal.toString()),
               leading: list[index].stock > 0
                   ? CustomNumberPicker(
-                      customAddButton: Center(
-                        child: IconButton(
-                          icon: Icon(
-                            FontAwesomeIcons.plusCircle,
-                          ),
-                          disabledColor: Colors.black,
-                        ),
-                      ),
-                      customMinusButton: IconButton(
-                        icon: Icon(FontAwesomeIcons.minusCircle),
-                        alignment: Alignment.center,
-                        disabledColor: Colors.black,
-                      ),
-                      initialValue: qty,
-                      minValue: 0,
-                      maxValue: 100,
-                      step: 1,
-                      onValue: (value) {
-                        setState(() {
-                          qty = value;
-                          list[index].qty = value;
-                        });
-                      },
-                    )
+                customAddButton: Center(
+                  child: IconButton(
+                    icon: Icon(
+                      FontAwesomeIcons.plusCircle,
+                    ),
+                    disabledColor: Colors.black,
+                  ),
+                ),
+                customMinusButton: IconButton(
+                  icon: Icon(FontAwesomeIcons.minusCircle),
+                  alignment: Alignment.center,
+                  disabledColor: Colors.black,
+                ),
+                initialValue: qty,
+                minValue: 0,
+                maxValue: 100,
+                step: 1,
+                onValue: (value) {
+                  setState(() {
+                    qty = value;
+                    list[index].qty = value;
+                  });
+                },
+              )
                   : CustomNumberPicker(
-                      customAddButton: Center(
-                        child: IconButton(
-                          splashColor: Colors.transparent,
-                          onPressed: () {},
-                          icon: Icon(
-                            FontAwesomeIcons.plusCircle,
-                          ),
-                          color: Colors.grey,
-                        ),
-                      ),
-                      customMinusButton: IconButton(
-                        splashColor: Colors.transparent,
-                        icon: Icon(FontAwesomeIcons.minusCircle),
-                        onPressed: () {},
-                        alignment: Alignment.center,
-                        color: Colors.grey,
-                      ),
-                      initialValue: products[index].qty,
-                      minValue: 0,
-                      maxValue: 100,
-                      step: 1,
-                      onValue: (value) {
-                        setState(() {
-                          list[index].qty = value;
-                        });
-                      },
-                    ));
+                customAddButton: Center(
+                  child: IconButton(
+                    splashColor: Colors.transparent,
+                    onPressed: () {},
+                    icon: Icon(
+                      FontAwesomeIcons.plusCircle,
+                    ),
+                    color: Colors.grey,
+                  ),
+                ),
+                customMinusButton: IconButton(
+                  splashColor: Colors.transparent,
+                  icon: Icon(FontAwesomeIcons.minusCircle),
+                  onPressed: () {},
+                  alignment: Alignment.center,
+                  color: Colors.grey,
+                ),
+                initialValue: products[index].qty,
+                minValue: 0,
+                maxValue: 100,
+                step: 1,
+                onValue: (value) {
+                  setState(() {
+                    list[index].qty = value;
+                  });
+                },
+              ));
         },
       ),
     );

@@ -1,7 +1,11 @@
-import 'package:app_repatidor_v2/src/bloc/login_bloc.dart';
-import 'package:app_repatidor_v2/src/bloc/provider.dart';
+import 'package:app_repartidor_v3/src/bloc/login_bloc.dart';
+import 'package:app_repartidor_v3/src/bloc/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:app_repatidor_v2/src/pages/home_page.dart';
+import 'package:getwidget/components/card/gf_card.dart';
+import 'package:getwidget/getwidget.dart';
+import 'package:toast/toast.dart';
+
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -165,30 +169,23 @@ class _LoginPageState extends State<LoginPage> {
     return (_loading)
         ? CircularProgressIndicator()
         : StreamBuilder(
-            stream: bloc.formValidStream,
-            builder: (BuildContext context, AsyncSnapshot snapshot) {
-              return RaisedButton(
-                padding: EdgeInsets.symmetric(horizontal: 90.0, vertical: 15.0),
-                child: Container(
-                  child: Text('Enviar'),
+      stream: bloc.formValidStream,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        return GFButton(
+          text: "Enviar",
+          elevation: 0.0,
+          onPressed: snapshot.hasData
+              ? () => bloc.signIn().then((value) {
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => HomePage(),
                 ),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5.0)),
-                elevation: 0.0,
-                textColor: Colors.white,
-                color: Colors.orangeAccent,
-                onPressed: snapshot.hasData
-                    ? () => bloc.signIn().then((value) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => HomePage(),
-                              ),
-                              (route) => false);
-                        })
-                    : null,
-              );
-            },
-          );
+                    (route) => false);
+          })
+              : null,
+        );
+      },
+    );
   }
 
   _login(LoginBloc bloc, BuildContext context) async {
@@ -199,7 +196,7 @@ class _LoginPageState extends State<LoginPage> {
           MaterialPageRoute(
             builder: (context) => LoginPage(),
           ),
-          (route) => false);
+              (route) => false);
     }
   }
 }

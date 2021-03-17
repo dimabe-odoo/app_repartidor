@@ -1,13 +1,13 @@
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
 import 'dart:convert';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/base_service.dart';
+import 'base_service.dart';
 import 'package:http/http.dart' as http;
 
 class AuthService extends BaseService {
   final _prefs = new UserPreference();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
-    final endpoint = "$url/api/login_truck";
+    final endpoint = Uri.parse("$url/api/login_truck");
     final data = {
       'params': {'user': email, 'password': password}
     };
@@ -18,7 +18,6 @@ class AuthService extends BaseService {
     if (isSuccessCode(resp.statusCode)) {
       final decodedResponse = json.decode(resp.body);
       if (decodedResponse.containsKey('result')) {
-        _prefs.id = decodedResponse['result']['id'];
         _prefs.token = decodedResponse['result']['token'];
         _prefs.name = decodedResponse['result']['user'];
         _prefs.email = decodedResponse['result']['email'];
@@ -29,6 +28,7 @@ class AuthService extends BaseService {
           _prefs.session = decodedResponse['result']['session'];
           _prefs.truck = decodedResponse['result']['truck'];
         }
+        setActive();
         return {'ok': true, 'message': 'Conectado correctamente'};
       }
 
@@ -38,7 +38,7 @@ class AuthService extends BaseService {
   }
 
   Future<void> setInactive() async {
-    final endpoint = "$url/api/redo_truck";
+    final endpoint = Uri.parse("$url/api/redo_truck");
     final data = {
       "params": {"session": _prefs.session, "orderId": _prefs.orderActive}
     };
@@ -51,7 +51,7 @@ class AuthService extends BaseService {
   }
 
   Future<void> setActive() async {
-    final endpoint = "$url/api/set_active";
+    final endpoint = Uri.parse("$url/api/set_active");
     final data = {
       "params": {"session": _prefs.session}
     };
@@ -64,7 +64,7 @@ class AuthService extends BaseService {
   }
 
   Future<bool> refreshToken() async {
-    final endpoint = '$url/api/refresh-token';
+    final endpoint = Uri.parse('$url/api/refresh-token');
     final params = {
       'params': {'email': _prefs.email}
     };
@@ -80,7 +80,7 @@ class AuthService extends BaseService {
   }
 
   Future<String> assignTruck(String truck) async {
-    final endpoint = '$url/api/assign_truck';
+    final endpoint = Uri.parse('$url/api/assign_truck');
     final params = {
       'params': {
         'truck': truck,
@@ -114,7 +114,7 @@ class AuthService extends BaseService {
 
   Future<String> logout(String session) async {
     print(session);
-    final endpoint = "$url/api/logout";
+    final endpoint = Uri.parse("$url/api/logout");
     var message = '';
     final params = {
       'params': {'session_id': session}

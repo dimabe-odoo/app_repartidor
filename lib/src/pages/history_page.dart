@@ -1,19 +1,13 @@
-import 'package:app_repatidor_v2/src/models/order_model.dart';
-import 'package:app_repatidor_v2/src/pages/order_detail_page.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/auth_service.dart';
-import 'package:app_repatidor_v2/src/services/order_service.dart';
+import 'package:app_repartidor_v3/src/models/order_model.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
+import 'package:app_repartidor_v3/src/services/auth_service.dart';
+import 'package:app_repartidor_v3/src/services/order_service.dart';
 import 'package:async_builder/async_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:getwidget/components/appbar/gf_appbar.dart';
-import 'package:getwidget/components/button/gf_button.dart';
-import 'package:getwidget/components/button/gf_button_bar.dart';
 import 'package:getwidget/components/list_tile/gf_list_tile.dart';
 import 'package:getwidget/components/loader/gf_loader.dart';
-import 'package:getwidget/getwidget.dart';
-
 import 'home_page.dart';
 import 'new_order_page.dart';
 
@@ -38,9 +32,9 @@ class HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appbar(),
-      body: history_list(),
-      bottomNavigationBar:bottom()
+        appBar: appbar(),
+        body: history_list(),
+        bottomNavigationBar:bottom()
     );
   }
 
@@ -61,13 +55,13 @@ class HistoryPageState extends State<HistoryPage> {
                     content:
                     Text('Esto significa que no recibira nuevos pedidos'),
                     actions: [
-                      FlatButton(
+                      ElevatedButton(
                           onPressed: () {
                             Navigator.of(context, rootNavigator: true)
                                 .pop('dialog');
                           },
                           child: Text("Cancelar")),
-                      FlatButton(
+                      ElevatedButton(
                           onPressed: () {
                             setState(() {
                               _prefs.active = false;
@@ -151,7 +145,7 @@ class HistoryPageState extends State<HistoryPage> {
 
   Widget displayList(List<OrderModel> orders) {
     return ListView.separated(
-      shrinkWrap: true,
+        shrinkWrap: true,
         itemBuilder: (context, index) {
           return GFListTile(
             title: Text(

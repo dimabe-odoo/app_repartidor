@@ -1,12 +1,10 @@
-import 'dart:io';
-
-import 'package:app_repatidor_v2/src/pages/home_page.dart';
-import 'package:app_repatidor_v2/src/services/auth_service.dart';
-import 'package:barcode_scan/barcode_scan.dart';
+import 'package:app_repartidor_v3/src/pages/home_page.dart';
+import 'package:app_repartidor_v3/src/services/auth_service.dart';
+import 'package:barcode_scan_fix/barcode_scan.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:toast/toast.dart';
-import 'package:getwidget/components/button/gf_icon_button.dart';
 
 class ScanPage extends StatefulWidget {
   @override
@@ -43,7 +41,7 @@ class _ScanPageState extends State<ScanPage> {
             body: Center(
               child: Column(
                 children: <Widget>[
-                  FlatButton.icon(
+                  TextButton.icon(
                       onPressed: () {
                         setState(() {
                           backCamera = !backCamera;
@@ -51,10 +49,10 @@ class _ScanPageState extends State<ScanPage> {
                         });
                       },
                       icon: backCamera
-                          ? Icon(Icons.camera)
-                          : Icon(Icons.camera_outlined),
+                          ? Icon(Icons.camera,color: Colors.black,)
+                          : Icon(Icons.camera_outlined,color: Colors.black),
                       label: Text('Esta usando :' +
-                          (backCamera ? "Camara Frontal" : "Camara Trasera"))),
+                          (backCamera ? "Camara Frontal" : "Camara Trasera"),style: TextStyle(color: Colors.black),)),
                   Text(
                     (qrCodeResult == null) || (qrCodeResult == "")
                         ? "Escanear el codigo qr presente en el camión"
@@ -62,15 +60,15 @@ class _ScanPageState extends State<ScanPage> {
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  FlatButton.icon(
+                  TextButton.icon(
                       onPressed: () {
-                        _scan();
+                        scan();
                       },
-                      height: 70.0,
-                      icon: Icon(FontAwesomeIcons.qrcode),
+                      icon: Icon(FontAwesomeIcons.qrcode,color: Colors.black,),
+                      style: ButtonStyle(backgroundColor: MaterialStateProperty.resolveWith((states) => getColor(states))),
                       label:
-                          Text("Escanear QR", style: TextStyle(fontSize: 16))),
-                  RaisedButton(
+                          Text("Escanear QR", style: TextStyle(fontSize: 16,color: Colors.black))),
+                  ElevatedButton(
                     onPressed: () {
                       setState(() {
                         authService.assignTruck(qrCodeResult).then((value) {
@@ -82,7 +80,7 @@ class _ScanPageState extends State<ScanPage> {
                                 MaterialPageRoute(
                                   builder: (context) => HomePage(),
                                 ),
-                                (Route<dynamic> route) => false);
+                                (route) => false);
                           }
                         });
                       });
@@ -97,17 +95,35 @@ class _ScanPageState extends State<ScanPage> {
         });
   }
 
-  Future<void> _scan() async {
-    ScanResult codeScanner = await BarcodeScanner.scan(
-      options: ScanOptions(
-        useCamera: camera,
-      ),
-    );
-    setState(() {
-      if (codeScanner.rawContent.contains('-')) {
-        qrCodeResult = codeScanner.rawContent;
+  Future scan() async {
+    try {
+      String barcode = await BarcodeScanner.scan();
+      setState(() => this.qrCodeResult = barcode);
+    } on PlatformException catch (e) {
+      if (e.code == BarcodeScanner.CameraAccessDenied) {
+        setState(() {
+          this.qrCodeResult = 'La app no tiene permiso para usar la camara';
+        });
+      } else {
+        setState(() => this.qrCodeResult = 'Unknown error: $e');
       }
-    });
+    } on FormatException {
+      setState(() => this.qrCodeResult =
+          'Escanear el codigo qr presente en el camion');
+    } catch (e) {
+      setState(() => this.qrCodeResult = 'Unknown error: $e');
+    }
+  }
+  Color getColor(Set<MaterialState> states) {
+    const Set<MaterialState> interactiveStates = <MaterialState>{
+      MaterialState.pressed,
+      MaterialState.hovered,
+      MaterialState.focused,
+    };
+    if (states.any(interactiveStates.contains)) {
+      return Colors.deepOrange;
+    }
+    return Colors.transparent;
   }
 }
 

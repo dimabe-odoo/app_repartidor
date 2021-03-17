@@ -1,30 +1,23 @@
-import 'dart:io';
-
-import 'package:app_repatidor_v2/src/pages/home_page.dart';
-import 'package:app_repatidor_v2/src/pages/login_page.dart';
-import 'package:app_repatidor_v2/src/pages/new_client_dart.dart';
-import 'package:app_repatidor_v2/src/pages/new_order_page.dart';
+import 'package:app_repartidor_v3/src/bloc/provider.dart';
+import 'package:app_repartidor_v3/src/models/order_model.dart';
+import 'package:app_repartidor_v3/src/pages/home_page.dart';
+import 'package:app_repartidor_v3/src/pages/login_page.dart';
+import 'package:app_repartidor_v3/src/pages/new_client_page.dart';
+import 'package:app_repartidor_v3/src/pages/new_order_page.dart';
+import 'package:app_repartidor_v3/src/pages/scan_page.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
-import 'package:app_repatidor_v2/src/bloc/provider.dart';
-import 'package:app_repatidor_v2/src/models/order_model.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   UserPreference prefs = new UserPreference();
   await prefs.initPrefs();
   runApp(MyApp());
-  download();
 }
 
-void download() async {
-  var path = (await getApplicationDocumentsDirectory()).path;
-  var directory = new Directory(path);
-  print(directory.path);
-}
 
 class MyApp extends StatelessWidget {
   var colors = const Color(0xff1f418b);
@@ -45,8 +38,11 @@ class MyApp extends StatelessWidget {
         routes: {
           '/': (BuildContext context) => HomePage(),
           '/login': (BuildContext context) => LoginPage(),
-          '/neworder': (BuildContext context) => NewOrderPage(),
-          '/newclient': (BuildContext context) => NewClientPage()
+          '/scan' : (BuildContext context) => ScanPage(),
+          '/home' : (BuildContext context) => HomePage(),
+          '/new_client' : (BuildContext context) => NewClientPage(),
+          '/new_order' : (BuildContext context) => NewOrderPage(),
+
         },
         theme: ThemeData(
             primaryColor: colors, accentColor: Colors.deepPurpleAccent),

@@ -2,9 +2,9 @@
 import 'dart:convert';
 import 'dart:io' as IO;
 import 'dart:typed_data';
-import 'package:app_repatidor_v2/src/models/product_model.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/base_service.dart';
+import 'package:app_repartidor_v3/src/models/product_model.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
+import 'package:app_repartidor_v3/src/services/base_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
@@ -12,7 +12,8 @@ class ProductService extends BaseService{
   final _prefs = new UserPreference();
 
   Future<List<ProductModel>> getProduct() async{
-    final endpoint = '$url/api/get_product_truck';
+    final uri = '$url/api/get_product_truck';
+    final endpoint = Uri.parse(uri);
     final data = {
       "params":{
 

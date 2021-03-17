@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:app_repatidor_v2/src/bloc/validators.dart';
-import 'package:app_repatidor_v2/src/services/auth_service.dart';
+import 'package:app_repartidor_v3/src/bloc/validators.dart';
+import 'package:app_repartidor_v3/src/services/auth_service.dart';
 import 'package:rxdart/rxdart.dart';
 
 class LoginBloc with Validators {
@@ -17,11 +17,11 @@ class LoginBloc with Validators {
   Stream<String> get passwordStream => _passwordController.stream.transform(passwordValidator);
   Stream<String> get nameStream => _nameController.stream.transform(nameValidator);
   Stream<String> get passwordConfirmStream => _passwordConfirmController.stream.transform(passwordValidator)
-    .doOnData((String c){
-      if (0 != _passwordController.value.compareTo(c)){
-        _passwordConfirmController.addError("Las contraseñas no coinciden");
-      }
-    });
+      .doOnData((String c){
+    if (0 != _passwordController.value.compareTo(c)){
+      _passwordConfirmController.addError("Las contraseñas no coinciden");
+    }
+  });
   Stream<String> get phoneStream => _phoneController.stream.transform(phoneValidator);
 
 

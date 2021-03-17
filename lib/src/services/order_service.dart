@@ -1,24 +1,22 @@
 import 'dart:convert';
 
-import 'package:app_repatidor_v2/src/models/order_line_model.dart';
-import 'package:app_repatidor_v2/src/models/order_model.dart';
-import 'package:app_repatidor_v2/src/models/product_model.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/base_service.dart';
-import 'package:app_repatidor_v2/src/utils/utils.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:app_repartidor_v3/src/models/order_line_model.dart';
+import 'package:app_repartidor_v3/src/models/order_model.dart';
+import 'package:app_repartidor_v3/src/models/product_model.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_select/smart_select.dart';
 
+import 'base_service.dart';
+
 class OrderService extends BaseService {
   final _prefs = UserPreference();
-  PolylinePoints polylinePoints;
 
   Future<void> createOrder(
       int clientId, List<ProductModel> list, String payment) async {
-    final endpoint = "$url/api/create_mobile";
-    List<String> listItem = new List();
+    final uri = "$url/api/create_mobile";
+    final endpoint = Uri.parse(uri);
+    List<String> listItem = [];
     for (var item in list) {
       if (item.qty > 0 && item.qty != null) {
         listItem.add(json.encode(item));
@@ -41,7 +39,8 @@ class OrderService extends BaseService {
   }
 
   Future<void> acceptedorder(double lat, double lon, OrderModel order) async {
-    final endpoint = '$url/api/accept_order';
+    final uri = '$url/api/accept_order';
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"latitude": lat, "longitude": lon, "mobile_id": order.id}
     };
@@ -54,7 +53,8 @@ class OrderService extends BaseService {
   }
 
   Future<void> cancelOrder(String id) async {
-    final endpoint = '$url/api/cancel';
+    final uri = '$url/api/cancel';
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"mobile_id": int.parse(id)}
     };
@@ -67,7 +67,8 @@ class OrderService extends BaseService {
   }
 
   Future<OrderModel> getOrders(double lat, double lot) async {
-    final endpoint = "$url/api/mobile_orders";
+    final uri = "$url/api/mobile_orders";
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {'latitude': lat, 'longitude': lot, 'session': _prefs.session}
     };
@@ -82,7 +83,8 @@ class OrderService extends BaseService {
       final decodedResponse = json.decode(resp.body);
       _prefs.orderActive = decodedResponse['result']['Order_Id'];
     }
-    final getorder = "$url/api/order";
+    final getorderuri = "$url/api/order";
+    final getorder = Uri.parse(getorderuri);
     final params = {
       "params": {"latitude": lat, "longitude": lot, "id": _prefs.orderActive}
     };
@@ -126,7 +128,8 @@ class OrderService extends BaseService {
   }
 
   Future<List<S2Choice<int>>> getPaymenth() async {
-    final endpoint = "$url/api/paymentmethod";
+    final uri = "$url/api/paymentmethod";
+    final endpoint = Uri.parse(uri);
     final data = {"params": {}};
     final resp = await http.post(endpoint,
         headers: {
@@ -150,7 +153,8 @@ class OrderService extends BaseService {
   }
 
   Future<OrderModel> getOrder(double lat, double lot, String id) async {
-    final endpoint = "$url/api/order";
+    final uri = "$url/api/order";
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"latitude": lat, "longitude": lot, "id": id}
     };
@@ -179,7 +183,8 @@ class OrderService extends BaseService {
   }
 
   Future<String> make_done(String id, String payment_id) async {
-    final endpoint = '$url/api/sale/make_done';
+    final uri = '$url/api/sale/make_done';
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"mobile_id": id, "payment_id": payment_id}
     };
@@ -199,7 +204,8 @@ class OrderService extends BaseService {
   }
 
   Future<List<OrderModel>> get_history() async {
-    final endpoint = '$url/api/my_orders';
+    final uri = '$url/api/my_orders';
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"employee": int.parse(_prefs.employeeId)}
     };
@@ -224,5 +230,4 @@ class OrderService extends BaseService {
     }
     return null;
   }
-  
 }

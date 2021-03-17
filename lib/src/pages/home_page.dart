@@ -1,31 +1,29 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'package:app_repatidor_v2/src/models/order_model.dart';
-import 'package:app_repatidor_v2/src/pages/history_page.dart';
-import 'package:app_repatidor_v2/src/pages/login_page.dart';
-import 'package:app_repatidor_v2/src/pages/new_order_page.dart';
-import 'package:app_repatidor_v2/src/pages/scan_page.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/auth_service.dart';
-import 'package:app_repatidor_v2/src/services/order_service.dart';
-import 'package:app_repatidor_v2/src/utils/utils.dart';
+import 'dart:async';
+
+import 'package:app_repartidor_v3/src/models/order_model.dart';
+import 'package:app_repartidor_v3/src/pages/scan_page.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
+import 'package:app_repartidor_v3/src/services/auth_service.dart';
+import 'package:app_repartidor_v3/src/services/order_service.dart';
 import 'package:async_builder/async_builder.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:community_material_icon/community_material_icon.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_icons/flutter_icons.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:getwidget/components/appbar/gf_appbar.dart';
-import 'package:getwidget/components/button/gf_icon_button.dart';
+import 'package:getwidget/components/card/gf_card.dart';
+import 'package:getwidget/components/list_tile/gf_list_tile.dart';
+import 'package:getwidget/components/loader/gf_loader.dart';
 import 'package:getwidget/getwidget.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as maps;
+import 'package:getwidget/types/gf_loader_type.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:smart_select/smart_select.dart';
-import 'package:workmanager/workmanager.dart';
+
+import 'history_page.dart';
+import 'login_page.dart';
+import 'new_order_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -46,10 +44,11 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    auth.setActive();
     checkPrefs(context);
     payment = OrderService().getPaymenth();
     location = new Location();
-    location.onLocationChanged.listen((event) {
+    location.onLocationChanged().listen((event) {
       currentLoc = event;
     });
 
@@ -76,7 +75,6 @@ class HomePageState extends State<HomePage> {
       backgroundColor: Color(0xff1f418b),
       currentIndex: currentPage,
       onTap: (value) {
-        print(_prefs.active);
         if (value == 3) {
           setState(() {
             if (_prefs.active == true) {
@@ -84,27 +82,33 @@ class HomePageState extends State<HomePage> {
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title:
-                        AutoSizeText('¿Esta seguro que desea esta inactivo?'),
-                    content: AutoSizeText(
-                        'Esto significa que no recibira nuevos pedidos'),
+                    insetPadding: EdgeInsets.symmetric(horizontal: 20),
+                    title: Text("¿Esta seguro que desea estar inactivo?"),
+                    content: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                              child: Text(
+                                  "Esto significa que no recibira nuevos pedidos"))
+                        ],
+                      ),
+                    ),
                     actions: [
-                      FlatButton(
+                      ElevatedButton(
                           onPressed: () {
                             Navigator.of(context, rootNavigator: true)
                                 .pop('dialog');
                           },
-                          child: AutoSizeText("Cancelar")),
-                      FlatButton(
+                          child: Text("No")),
+                      ElevatedButton(
                           onPressed: () {
-                            setState(() {
-                              _prefs.active = false;
-                              auth.setInactive().then((value) =>
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pop('dialog'));
-                            });
+                            _prefs.active = false;
+                            auth.setInactive().then((value) =>
+                                Navigator.of(context, rootNavigator: true)
+                                    .pop('dialog'));
                           },
-                          child: AutoSizeText("Confirmar"))
+                          child: Text("Si"))
                     ],
                   );
                 },
@@ -160,7 +164,7 @@ class HomePageState extends State<HomePage> {
     return AsyncBuilder(
       waiting: (context) => Center(
         child: GFLoader(
-          type: GFLoaderType.square,
+          type: GFLoaderType.android,
         ),
       ),
       future: current,
@@ -188,7 +192,7 @@ class HomePageState extends State<HomePage> {
       builder: (context, value) {
         return value != null
             ? card(context, value, current,
-                maps.LatLng(value.clientLatitude, value.clientLongitude))
+                LatLng(value.clientLatitude, value.clientLongitude))
             : Center(
                 child: AutoSizeText("No hay nuevo pedido pedidos"),
               );
@@ -197,7 +201,7 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget card(BuildContext context, OrderModel order, LocationData current,
-      maps.LatLng destiny) {
+      LatLng destiny) {
     print(order.state);
     return GFCard(
       title: GFListTile(
@@ -272,50 +276,10 @@ class HomePageState extends State<HomePage> {
                                       OrderService().make_done(
                                           _prefs.orderActive,
                                           paymentId.toString());
-                                      _prefs.active = false;
-                                      auth.setInactive();
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: Text("Continuar Vendiendo"),
-                                            content: Text(
-                                                "¿Desea continuar vendiendo?"),
-                                            actions: <Widget>[
-                                              FlatButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _prefs.active = false;
-                                                      auth.setInactive();
-                                                      Navigator.pushAndRemoveUntil(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                              builder: (BuildContext
-                                                                      context) =>
-                                                                  super.widget),
-                                                          (route) => false);
-                                                    });
-                                                  },
-                                                  child: Text("No")),
-                                              FlatButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _prefs.active = false;
-                                                      auth.setActive();
-                                                      Navigator.pushAndRemoveUntil(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                              builder: (BuildContext
-                                                                      context) =>
-                                                                  super.widget),
-                                                          (route) => false);
-                                                    });
-                                                  },
-                                                  child: Text("Si"))
-                                            ],
-                                          );
-                                        },
-                                      );
+                                      Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (BuildContext context) => super.widget));
                                     });
                                   },
                                   child: Text("Seleccionar"))
@@ -348,6 +312,11 @@ class HomePageState extends State<HomePage> {
                                   onPressed: () {
                                     setState(() {
                                       OrderService().cancelOrder(order.id);
+                                      Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (context) => HomePage(),
+                                          ),
+                                          (route) => false);
                                     });
                                   },
                                   child: Text("Si"))
@@ -382,6 +351,9 @@ class HomePageState extends State<HomePage> {
                                   onPressed: () {
                                     setState(() {
                                       OrderService().cancelOrder(order.id);
+                                      _prefs.orderActive = null;
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop('dialog');
                                     });
                                   },
                                   child: Text("Si"))
@@ -518,11 +490,10 @@ class HomePageState extends State<HomePage> {
                   builder: (context) => LoginPage(),
                 ),
                 (route) => false));
-
     }
   }
 
-  showMap(maps.LatLng destiny, LocationData current) async {
+  showMap(LatLng destiny, LocationData current) async {
     final availableMaps = await MapLauncher.installedMaps;
     availableMaps.first.showDirections(
         destination: Coords(destiny.latitude, destiny.longitude),

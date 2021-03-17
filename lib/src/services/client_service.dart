@@ -1,24 +1,18 @@
-import 'dart:convert';
-import 'dart:io' as IO;
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:app_repatidor_v2/src/models/client_model.dart';
-import 'package:app_repatidor_v2/src/models/order_model.dart';
-import 'package:app_repatidor_v2/src/models/product_model.dart';
-import 'package:app_repatidor_v2/src/preferences/user_preference.dart';
-import 'package:app_repatidor_v2/src/services/base_service.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app_repartidor_v3/src/models/client_model.dart';
+import 'package:app_repartidor_v3/src/models/product_model.dart';
+import 'package:app_repartidor_v3/src/preferences/user_preference.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'package:sync_http/sync_http.dart' as synchttp;
-import 'package:path_provider/path_provider.dart';
 import 'package:smart_select/smart_select.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'base_service.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ClientService extends BaseService {
   final _prefs = new UserPreference();
 
   Future<List<S2Choice<int>>> getClient(String truck) async {
-    final endpoint = "$url/api/clients";
+    final endpoint = Uri.parse("$url/api/clients");
     final data = {
       "params": {"truck": truck}
     };
@@ -43,7 +37,8 @@ class ClientService extends BaseService {
   }
 
   Future<ClientModel> getClientId(int id) async {
-    final endpoint = "$url/api/client";
+    final uri = "$url/api/client";
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"client": id}
     };
@@ -56,9 +51,9 @@ class ClientService extends BaseService {
     if(isSuccessCode(resp.statusCode)){
       final decoded = json.decode(resp.body);
       final client = ClientModel(
-        id:decoded['result']['id'].toString(),
-        name: decoded['result']['display_name'],
-        address: decoded['result']['street']
+          id:decoded['result']['id'].toString(),
+          name: decoded['result']['display_name'],
+          address: decoded['result']['street']
       );
       return client;
     };
@@ -67,7 +62,8 @@ class ClientService extends BaseService {
 
   Future<dynamic> createClient(String name, String email, int phoneNumber,
       int comummne_id, String address, LatLng result, String vat) async {
-    final endpoint = "$url/api/create_client";
+    final uri = "$url/api/create_client";
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {
         "name": name,
@@ -95,7 +91,8 @@ class ClientService extends BaseService {
   }
 
   Future<List> getPrice(int client) async {
-    final endpoint = "$url/api/prices";
+    final uri = "$url/api/prices";
+    final endpoint = Uri.parse(uri);
     final data = {
       "params": {"client_id": client, "truck": _prefs.truck}
     };

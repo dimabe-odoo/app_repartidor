@@ -20,7 +20,7 @@ class ProductModel {
   bool isDis;
   bool isCat;
   int qty;
-  double stock;
+  dynamic stock;
   FileImage imageProduct;
 
   factory ProductModel.fromJson(Map<String,dynamic> json) => ProductModel(

@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:app_repatidor_v2/src/models/order_line_model.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+
+import 'order_line_model.dart';
 
 OrderModel orderModelFromJson(String str) =>
     OrderModel.fromJson(json.decode(str));
@@ -18,8 +18,7 @@ class OrderModel {
         this.distance = '',
         this.total = 0.0,
         this.lines,
-        this.state = '',
-        this.polylines});
+        this.state = ''});
 
   String id;
   String orderName;
@@ -33,7 +32,6 @@ class OrderModel {
   String distance;
   double total;
   List<OrderLineModel> lines;
-  List<PointLatLng> polylines;
 
   factory OrderModel.fromJson(Map<String, dynamic> json) => OrderModel(
       id: json['id'],

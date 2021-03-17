@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:app_repatidor_v2/src/models/product_model.dart';
+import 'package:app_repartidor_v3/src/models/product_model.dart';
 class ClientModel {
   ClientModel(
       {this.id,

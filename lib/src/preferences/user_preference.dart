@@ -66,7 +66,7 @@ class UserPreference {
   get active => _prefs.getBool('active');
 
   set active(bool value) => _prefs.setBool('active', value);
-  
+
   get urlImage => _prefs.getString('urlImage');
 
   set urlImage(String value) => _prefs.setString('urlImage', value);
